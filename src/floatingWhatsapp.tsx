@@ -3,9 +3,10 @@ import whatsappIcon from "./assets/logo/whatsapp.png";
 const FloatingWhatsapp = () => {
   return (
     <a
-      href="https://wa.me/91XXXXXXXXXX"
+      href="https://wa.me/919811263046?text=Hello%20AIxperts%20Labs%2C%20I%20would%20like%20to%20inquire%20about%20your%20services"
       target="_blank"
       rel="noopener noreferrer"
+      aria-label="Chat on WhatsApp"
       className="fixed bottom-30 right-6 z-[9999] group"
     >
       <div className="relative">

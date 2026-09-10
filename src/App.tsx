@@ -780,8 +780,8 @@ const CaseStudies = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center max-w-3xl mx-auto mb-20">
           <h2 className="text-8xl font-bold text-slate-900 mb-6 tracking-tight">
-  Impact <span className="text-orange-500">Stories</span>
-</h2>
+            Impact <span className="text-orange-500">Stories</span>
+          </h2>
           <p className="text-slate-500 text-4xl">Measurable results from our most ambitious enterprise collaborations.</p>
         </div>
         <div className="grid lg:grid-cols-2 gap-10">
@@ -789,20 +789,25 @@ const CaseStudies = () => {
             { title: 'Global Bank Transformation', client: 'Fortune 500 Bank', impact: '40% Cost Reduction', img: 'https://www.shutterstock.com/image-photo/cost-reduction-saving-through-digital-600nw-2669968679.jpg' },
             { title: 'Autonomous Logistics Hub', client: 'LogiTech Corp', impact: '99.9% Accuracy', img: 'https://media.istockphoto.com/id/2205777418/photo/port-of-southampton-captured-by-drone-at-sunrise.jpg?s=612x612&w=0&k=20&c=t5CV8Tcin-Qe5wMQ7I5xFxiy94B0vkvPslr-t0hrG5Q=' },
           ].map((study, i) => (
-            <div key={i} className="group cursor-pointer">
-              <div className="relative h-[400px] rounded-[40px] overflow-hidden mb-8">
-               <img
-  src={study.img}
-  alt={study.title}
-  className="w-full h-full object-cover rounded-[40px]"
-/>
+            <Link to="/portfolio" key={i} className="group cursor-pointer block">
+              <div className="relative h-[400px] rounded-[40px] overflow-hidden mb-8 transition-transform duration-500 group-hover:scale-[1.02]">
+                <img
+                  src={study.img}
+                  alt={study.title}
+                  className="w-full h-full object-cover rounded-[40px] group-hover:brightness-90 transition-all duration-500"
+                />
                
-                <div className="absolute bottom-10 left-10">
+                <div className="absolute bottom-10 left-10 right-10">
                   <span className="bg-orange-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4 inline-block">{study.impact}</span>
-                  <h3 className="text-3xl font-bold text-white tracking-tight">{study.title}</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-3xl font-bold text-white tracking-tight">{study.title}</h3>
+                    <span className="text-white text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1">
+                      View Story →
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
@@ -834,10 +839,14 @@ const EducationEcosystem = () => {
             <h3 className="text-2xl font-bold text-slate-900 mb-8">Curriculum Tracks</h3>
             <div className="space-y-4">
               {['AI Strategy for Executives', 'Deep Learning Engineering', 'AI Ethics & Governance', 'Autonomous Agent Design'].map((track, i) => (
-                <div key={i} className="flex items-center justify-between p-6 rounded-2xl bg-white border border-slate-100 hover:border-orange-500 transition-all group cursor-pointer shadow-sm">
+                <Link
+                  to="/institute"
+                  key={i}
+                  className="flex items-center justify-between p-6 rounded-2xl bg-white border border-slate-100 hover:border-orange-500 transition-all group cursor-pointer shadow-sm"
+                >
                   <span className="font-bold text-slate-900">{track}</span>
                   <ChevronRight className="w-5 h-5 text-orange-500 opacity-0 group-hover:opacity-100 transition-all" />
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -1067,49 +1076,66 @@ const Solutions = () => {
 };
 
 const HelloGini = () => {
-
   const [listening, setListening] = useState(false);
   const [response, setResponse] = useState("");
+
   useEffect(() => {
-  window.speechSynthesis.onvoiceschanged = () => {
-    window.speechSynthesis.getVoices();
-  };
-}, []);
-
- const SpeechRecognition =
-  (window as any).SpeechRecognition ||
-  (window as any).webkitSpeechRecognition;
-
-  const recognition = new SpeechRecognition();
-  recognition.lang = "en-IN";
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+  }, []);
 
   const startListening = () => {
-    setListening(true);
-    recognition.start();
+    const SpeechRecognitionClass =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
 
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript.toLowerCase();
+    if (!SpeechRecognitionClass) {
+      const fallbackMsg = "Voice input is not supported on this browser. Please try Chrome, Edge, or text inquiry.";
+      setResponse(fallbackMsg);
+      speak(fallbackMsg);
+      return;
+    }
 
-      let reply = "";
+    try {
+      const recognition = new SpeechRecognitionClass();
+      recognition.lang = "en-IN";
+      setListening(true);
+      recognition.start();
 
-      if (transcript.includes("hellogini") || transcript.includes("what is this")) {
-        reply = "HelloGini ek voice based AI system hai jo human aur machine ke beech natural interaction create karta hai.";
-      } 
-      else if (transcript.includes("feature")) {
-        reply = "HelloGini ke features me voice interaction, emotion understanding aur privacy first architecture shamil hai.";
-      } 
-      else if (transcript.includes("project")) {
-        reply = "Humne chatbot, fraud detection aur automation jaise AI projects banate hain.";
-      } 
-      else {
-        reply = "Sorry, please ask about HelloGini or our AI projects.";
-      }
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript.toLowerCase();
 
-      setResponse(reply);
-      speak(reply);
-    };
+        let reply = "";
 
-    recognition.onend = () => setListening(false);
+        if (transcript.includes("hellogini") || transcript.includes("what is this")) {
+          reply = "HelloGini ek voice based AI system hai jo human aur machine ke beech natural interaction create karta hai.";
+        } 
+        else if (transcript.includes("feature")) {
+          reply = "HelloGini ke features me voice interaction, emotion understanding aur privacy first architecture shamil hai.";
+        } 
+        else if (transcript.includes("project")) {
+          reply = "Humne chatbot, fraud detection aur automation jaise AI projects banate hain.";
+        } 
+        else {
+          reply = "Sorry, please ask about HelloGini or our AI projects.";
+        }
+
+        setResponse(reply);
+        speak(reply);
+      };
+
+      recognition.onerror = () => {
+        setListening(false);
+      };
+
+      recognition.onend = () => setListening(false);
+    } catch (err) {
+      console.error(err);
+      setListening(false);
+    }
   };
 
   const speak = (text: any) => {
@@ -1219,13 +1245,15 @@ const CTA = () => {
           Join the elite organizations transforming their future with AIxperts Labs. The next era of intelligence starts now.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-          <button className="w-full sm:w-auto bg-slate-900 text-white px-12 py-6 rounded-full font-bold text-xl hover:bg-orange-600 hover:scale-105 transition-all shadow-2xl shadow-slate-200">
-            Start Transformation
-          </button>
+          <Link to="/consultation" className="w-full sm:w-auto">
+            <button className="w-full bg-slate-900 text-white px-12 py-6 rounded-full font-bold text-xl hover:bg-orange-600 hover:scale-105 transition-all shadow-2xl shadow-slate-200">
+              Start Transformation
+            </button>
+          </Link>
         
 
-<Link to="/contact">
-  <button className="w-full sm:w-auto bg-white border-2 border-slate-200 text-slate-900 px-12 py-6 rounded-full font-bold text-xl hover:bg-slate-50 transition-all">
+<Link to="/contact" className="w-full sm:w-auto">
+  <button className="w-full bg-white border-2 border-slate-200 text-slate-900 px-12 py-6 rounded-full font-bold text-xl hover:bg-slate-50 transition-all">
     Contact Strategy Team
   </button>
 </Link>
@@ -1354,25 +1382,33 @@ const Terms = () => {
 const Footer = () => {
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterStatus, setNewsletterStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newsletterEmail) return;
+    if (!newsletterEmail.trim()) return;
 
     setNewsletterStatus("sending");
+    setErrorMessage("");
+
     try {
       await submitForm({
         formType: "newsletter",
         name: "Newsletter Subscriber",
-        email: newsletterEmail,
+        email: newsletterEmail.trim(),
         source: "footer-newsletter",
       });
       setNewsletterStatus("sent");
       setNewsletterEmail("");
-      setTimeout(() => setNewsletterStatus("idle"), 3000);
-    } catch (err) {
+      setTimeout(() => {
+        setNewsletterStatus("idle");
+      }, 4000);
+    } catch (err: any) {
       console.error("NEWSLETTER ERROR:", err);
       setNewsletterStatus("error");
+      setErrorMessage(
+        err?.message || "Failed to subscribe. Please ensure the backend API server is running."
+      );
     }
   };
 
@@ -1396,16 +1432,17 @@ const Footer = () => {
             </p>
             <div className="flex gap-4">
   {[
-    { icon: <Instagram size={20} />, link: "https://instagram.com" },
-    { icon: <Facebook size={20} />, link: "https://facebook.com" },
-    { icon: <Twitter size={20} />, link: "https://twitter.com" },
-    { icon: <Linkedin size={20} />, link: "https://linkedin.com" },
+    { icon: <Instagram size={20} />, link: "https://instagram.com", label: "Instagram" },
+    { icon: <Facebook size={20} />, link: "https://facebook.com", label: "Facebook" },
+    { icon: <Twitter size={20} />, link: "https://x.com", label: "X (Twitter)" },
+    { icon: <Linkedin size={20} />, link: "https://linkedin.com", label: "LinkedIn" },
   ].map((item, index) => (
     <a
       key={index}
       href={item.link}
       target="_blank"
       rel="noopener noreferrer"
+      aria-label={item.label}
       className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-600 hover:bg-orange-50 hover:text-orange-600 hover:scale-110 transition-all cursor-pointer"
     >
       {item.icon}
@@ -1480,23 +1517,33 @@ const Footer = () => {
             <form onSubmit={handleNewsletterSubmit} className="relative">
               <input
                 type="email"
-                placeholder={newsletterStatus === "sent" ? "Subscribed! ✓" : "Enter email"}
+                placeholder={newsletterStatus === "sent" ? "Subscribed! ✓" : "Enter email address"}
                 value={newsletterEmail}
                 onChange={(e) => setNewsletterEmail(e.target.value)}
                 required
                 disabled={newsletterStatus === "sending" || newsletterStatus === "sent"}
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-slate-900 focus:outline-none focus:border-orange-500 transition-all disabled:opacity-60"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-5 pr-14 py-4 text-slate-900 focus:outline-none focus:border-orange-500 transition-all disabled:opacity-60"
               />
               <button
                 type="submit"
                 disabled={newsletterStatus === "sending" || newsletterStatus === "sent"}
-                className="absolute right-2 top-2 bottom-2 bg-slate-900 text-white px-4 rounded-xl hover:bg-slate-800 transition-all disabled:opacity-60"
+                aria-label="Subscribe to newsletter"
+                className="absolute right-2 top-2 bottom-2 bg-slate-900 hover:bg-orange-600 text-white px-4 rounded-xl transition-all disabled:opacity-60 flex items-center justify-center cursor-pointer"
               >
-                <ArrowRight className="w-5 h-5" />
+                {newsletterStatus === "sending" ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : newsletterStatus === "sent" ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                ) : (
+                  <ArrowRight className="w-5 h-5" />
+                )}
               </button>
             </form>
+            {newsletterStatus === "sent" && (
+              <p className="text-emerald-600 text-xs mt-2 font-medium">✓ You are subscribed to our Intelligence Feed!</p>
+            )}
             {newsletterStatus === "error" && (
-              <p className="text-red-500 text-xs mt-2">Failed to subscribe. Please try again.</p>
+              <p className="text-red-500 text-xs mt-2">{errorMessage}</p>
             )}
           </div>
         </div>
@@ -1520,6 +1567,44 @@ const Footer = () => {
 
 // --- Main App ---
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname]);
+
+  return null;
+};
+
+const NotFound = () => (
+  <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 text-center py-20">
+    <span className="px-4 py-1.5 rounded-full bg-orange-500/10 text-orange-600 font-bold text-xs uppercase tracking-widest mb-4">
+      404 Error
+    </span>
+    <h1 className="text-6xl md:text-8xl font-black text-slate-900 mb-4 tracking-tight">
+      Page Not <span className="text-orange-600">Found</span>
+    </h1>
+    <p className="text-slate-500 max-w-md text-lg mb-8 leading-relaxed">
+      The intelligence pathway you are looking for does not exist or has been relocated.
+    </p>
+    <div className="flex flex-wrap gap-4 justify-center">
+      <Link
+        to="/"
+        className="bg-slate-900 hover:bg-orange-600 text-white font-bold px-8 py-4 rounded-full transition-all shadow-lg inline-flex items-center gap-2"
+      >
+        Return Home <ArrowRight className="w-4 h-4" />
+      </Link>
+      <Link
+        to="/contact"
+        className="bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold px-8 py-4 rounded-full transition-all"
+      >
+        Contact Support
+      </Link>
+    </div>
+  </div>
+);
+
 const HomePage = () => (
   <>
     <Hero />
@@ -1538,7 +1623,9 @@ const HomePage = () => (
 export default function App() {
   return (
     <Router>
-      <FloatingGini />    <FloatingSocials />  
+      <ScrollToTop />
+      <FloatingGini />
+      <FloatingSocials />  
       <div className="min-h-screen bg-white font-sans">
         <Navbar />
         <main className="pt-20">
@@ -1557,6 +1644,7 @@ export default function App() {
             <Route path="/terms" element={<Terms />} />
             {/* <Route path="/research" element={<Research />} /> */}
             <Route path="/consultation" element={<Consultation />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
         
@@ -1564,5 +1652,5 @@ export default function App() {
       </div>
     </Router>
   );
-  
 }
+
