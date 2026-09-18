@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import env from "./config/env.js";
 import routes from "./routes/index.js";
+import sitemapRoutes from "./routes/sitemap.routes.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -45,6 +46,7 @@ app.get("/", (req, res) => {
   res.json({ success: true, message: "AIxperts Labs API is running." });
 });
 
+app.use("/", sitemapRoutes);
 app.use("/api", routes);
 
 app.use(notFound);
