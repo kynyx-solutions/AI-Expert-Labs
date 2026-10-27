@@ -1,6 +1,6 @@
 import { FORM_TYPES } from "../models/Submission.js";
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const validateSubmission = (req, res, next) => {
   const { formType, name, email } = req.body || {};

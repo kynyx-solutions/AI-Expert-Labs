@@ -20,6 +20,7 @@ import infratech from "./assets/partners/infratech.png";
 import Homeasy from "./assets/partners/homeasy.png";
 import aihero from "./public/videos/aihero.mp4";
 import Consultation from "./consultation";
+import Enroll from "./enroll";
 import MovingGini from "./MovingGini";
 import cehro from './assets/cehro.png';
 import kynyx from './assets/kynyx logo.png'; 
@@ -587,7 +588,7 @@ const CapabilityStack = () => {
   ];
 
   return (
-    <section className="py-10 bg-white">
+    <section className="py-12 md:py-16 bg-white">
       <div className="max-w-7xl mx-auto px-6">
 
         <div className="max-w-3xl mb-10">
@@ -682,7 +683,7 @@ const Industries = () => {
   ];
 
   return (
-    <section className="py-16 bg-white border-b border-slate-100">
+    <section className="py-12 md:py-16 bg-white border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-6">
 
         <div className="flex flex-col lg:flex-row gap-10 items-center">
@@ -776,13 +777,13 @@ const Industries = () => {
 };
 const CaseStudies = () => {
   return (
-    <section className="py-16 bg-white">
+    <section className="py-12 md:py-16 bg-white">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center max-w-3xl mx-auto mb-20">
-          <h2 className="text-8xl font-bold text-slate-900 mb-6 tracking-tight">
+        <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
+          <h2 className="text-5xl md:text-8xl font-bold text-slate-900 mb-6 tracking-tight">
             Impact <span className="text-orange-500">Stories</span>
           </h2>
-          <p className="text-slate-500 text-4xl">Measurable results from our most ambitious enterprise collaborations.</p>
+          <p className="text-slate-500 text-2xl md:text-4xl">Measurable results from our most ambitious enterprise collaborations.</p>
         </div>
         <div className="grid lg:grid-cols-2 gap-10">
           {[
@@ -790,7 +791,7 @@ const CaseStudies = () => {
             { title: 'Autonomous Logistics Hub', client: 'LogiTech Corp', impact: '99.9% Accuracy', img: 'https://media.istockphoto.com/id/2205777418/photo/port-of-southampton-captured-by-drone-at-sunrise.jpg?s=612x612&w=0&k=20&c=t5CV8Tcin-Qe5wMQ7I5xFxiy94B0vkvPslr-t0hrG5Q=' },
           ].map((study, i) => (
             <Link to="/portfolio" key={i} className="group cursor-pointer block">
-              <div className="relative h-[400px] rounded-[40px] overflow-hidden mb-8 transition-transform duration-500 group-hover:scale-[1.02]">
+              <div className="relative h-[400px] rounded-[40px] overflow-hidden transition-transform duration-500 group-hover:scale-[1.02]">
                 <img
                   src={study.img}
                   alt={study.title}
@@ -817,7 +818,7 @@ const CaseStudies = () => {
 
 const EducationEcosystem = () => {
   return (
-    <section className="py-16 bg-white border-b border-slate-100 overflow-hidden relative">
+    <section className="py-12 md:py-16 bg-white border-b border-slate-100 overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="grid lg:grid-cols-2 gap-20 items-center">
           <div>
@@ -880,7 +881,7 @@ const ThoughtLeadership = () => {
   ];
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-12 md:py-16 bg-white">
       <div className="max-w-7xl mx-auto px-6">
 
         {/* HEADER */}
@@ -976,7 +977,7 @@ const Solutions = () => {
   ];
 
   return (
-    <section className="py-10 bg-white relative overflow-hidden border-b border-slate-100">
+    <section className="py-12 md:py-16 bg-white relative overflow-hidden border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
 
         {/* HEADER */}
@@ -1166,7 +1167,7 @@ const HelloGini = () => {
 };
 
   return (
-    <section className="py-16 bg-white relative overflow-hidden border-b border-slate-100">
+    <section className="py-12 md:py-16 bg-white relative overflow-hidden border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="grid lg:grid-cols-2 gap-24 items-center">
 
@@ -1644,6 +1645,7 @@ export default function App() {
             <Route path="/terms" element={<Terms />} />
             {/* <Route path="/research" element={<Research />} /> */}
             <Route path="/consultation" element={<Consultation />} />
+            <Route path="/enroll" element={<Enroll />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

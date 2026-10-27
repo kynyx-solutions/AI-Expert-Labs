@@ -921,7 +921,7 @@ const Contact: React.FC = () => {
   
 
   return (
-    <div className="bg-white pt-0 pb-30">
+    <div className="bg-white pt-0 pb-12 md:pb-16">
       {/* ANIMATED CHARACTER + FORM */}
       <AnimatedContactSection onSubmitSuccess={() => setGlobalSent(true)} />
 
