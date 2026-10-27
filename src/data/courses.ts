@@ -1,3 +1,5 @@
+import { syllabi } from "./syllabi";
+
 export type CategoryId =
   | "aiml"
   | "genai"
@@ -31,6 +33,16 @@ export const categories: Category[] = [
 
 export const levels: Level[] = ["Beginner", "Intermediate", "Advanced", "Leaders"];
 
+/** Full syllabus for a program page. Programs without it show a "request syllabus" prompt instead. */
+export interface CourseDetails {
+  summary: string;
+  audience: string;
+  prereq: string;
+  tools: string[];
+  outcomes: string[];
+  plan: { day: string; title: string; detail: string }[];
+}
+
 export interface Course {
   slug: string;
   title: string;
@@ -39,13 +51,16 @@ export interface Course {
   duration: string;
   level: Level;
   blurb: string;
+  details?: CourseDetails;
 }
 
+// Keep in sync with slugify() in scripts/generate-sitemap.js, which builds the program URLs.
 export const slugify = (s: string) =>
   s.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
 type Raw = [CategoryId, string, number, Level, string];
 
+// The sitemap script reads course titles from these rows; keep one course per line.
 const raw: Raw[] = [
   // AI & ML Program
   ["aiml", "Python for AI Beginners", 15, "Beginner", "Python from zero, through to data handling and simple AI models."],
@@ -91,6 +106,18 @@ export const flagship = {
   title: "Professional Certificate Program in AI, Generative AI & Business Automation",
   hours: 40,
   batchTypes: "Regular / Weekend",
+  audience: [
+    ["Students & graduates", "Add job-ready AI skills and a certified project to your resume."],
+    ["Working professionals", "Work faster and take on AI-related responsibilities at work."],
+    ["MSME owners & teams", "Automate routine work and use AI in marketing and operations."],
+    ["Job seekers & career switchers", "Build a practical skill set for AI-enabled roles. No coding needed."],
+  ] as [string, string][],
+  takeaways: [
+    "Confidence using leading AI tools for everyday work",
+    "A working business automation you built yourself",
+    "A capstone project to show employers or clients",
+    "A certificate co-issued by NSIC and AIxperts Labs",
+  ],
   topics: [
     ["AI Fundamentals", "What AI and GenAI are, how they work, and where they help."],
     ["Prompt Engineering", "Structured prompts that give accurate, consistent output."],
@@ -110,7 +137,34 @@ export const courses: Course[] = raw.map(([cat, title, days, level, blurb]) => (
   duration: `${days} ${days === 1 ? "day" : "days"}`,
   level,
   blurb,
+  details: syllabi[title],
 }));
+
+// Master curriculum: the module bank programs are built from (module name, hours).
+export const modules: [string, number][] = [
+  ["Foundation Digital Skills", 12],
+  ["AI Fundamentals", 14],
+  ["Prompt Engineering", 12],
+  ["Generative AI Applications", 15],
+  ["AI Productivity Tools", 12],
+  ["AI for Business & MSMEs", 10],
+  ["No-Code AI Automation", 20],
+  ["AI Agents & Business Workflows", 20],
+  ["Career Readiness", 10],
+  ["Capstone Project", 20],
+  ["AI-Powered Digital Marketing & Content Creation", 25],
+  ["Data Analytics using Excel, SQL & Power BI", 12],
+  ["Python Programming for AI & Data Science", 15],
+  ["Cloud Computing using AWS, Azure & Google Cloud", 12],
+  ["Full Stack Web Development with AI Tools", 10],
+  ["UI/UX Design with AI Tools", 20],
+  ["Business Analytics using Power BI & Tableau", 20],
+  ["AI for Finance, Accounting & Banking", 10],
+  ["Entrepreneurship, Startup & Innovation Management", 20],
+  ["Job Readiness Program with AI, Communication & Interview Preparation", 12],
+];
+
+export const curriculumHours = modules.reduce((sum, [, h]) => sum + h, 0);
 
 /** Every program a learner can enroll in: the flagship first, then the catalogue. */
 export const enrollablePrograms: Course[] = [
@@ -125,7 +179,7 @@ export const enrollablePrograms: Course[] = [
   ...courses,
 ];
 
-export const getProgram = (slug: string | null) =>
+export const getProgram = (slug: string | null | undefined) =>
   enrollablePrograms.find((c) => c.slug === slug);
 
 export const getCategory = (id: CategoryId) => categories.find((c) => c.id === id)!;

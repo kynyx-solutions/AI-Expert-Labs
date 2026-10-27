@@ -191,7 +191,7 @@ export const renderCertificatePdf = async (certificate, stream) => {
   // Our verification number, so anyone can check this certificate online.
   const site = env.siteUrl.replace(/^https?:\/\//, "");
   doc.font("Helvetica").fontSize(7.5).fillColor(MUTED)
-    .text(`Certificate ID: ${certificate.certificateId}   ·   Verify at ${site}/institute`, 0, H - 40, {
+    .text(`Certificate ID: ${certificate.certificateId}   ·   Verify at ${site}/academy`, 0, H - 40, {
       width: W,
       align: "center",
       lineBreak: false,

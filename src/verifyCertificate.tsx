@@ -33,7 +33,7 @@ export default function VerifyCertificate() {
     }
   };
 
-  // Links like /institute?cert=AXL/2026/0001 verify and scroll into view automatically.
+  // Links like /academy?cert=AXL/2026/0001 verify and scroll into view automatically.
   useEffect(() => {
     const q = params.get("cert");
     if (!q) return;

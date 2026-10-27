@@ -76,17 +76,25 @@ Used by the `/enroll` page. Multipart form fields: `program`, `programSlug`,
 `photo` (JPG/PNG, under 2 MB). Saves the enrollment, emails the team (photo attached) and
 sends the learner a confirmation. Returns `{ enrollmentId: "AXL-ENR-12345", ... }`.
 
+**Custom course requests.** When a learner picks "Something else" (or opens
+`/enroll?course=custom`), send `requestType=custom`, `customTopic` (3–120 characters, what
+they want to learn) and optional `customDetails` (up to 1000 characters) instead of
+`program`/`programSlug`. The photo is optional for these. The ID starts with `AXL-REQ-`,
+the team email is titled "New Custom Course Request", and the learner is told the team will
+plan a course with them.
+
 ### `GET /api/enrollments`
-Admin-only (`x-admin-key`). Query params: `status`, `page`, `limit`.
+Admin-only (`x-admin-key`). Query params: `status`, `page`, `limit`. Filter custom requests
+client-side by `requestType: "custom"`.
 `GET /api/enrollments/:enrollmentId/photo` returns the learner's photo.
 
 ### `GET /api/certificates/verify?id=AXL/2026/0001`
-Public. Used by the "Verify a Certificate" section on `/institute`.
+Public. Used by the "Verify a Certificate" section on `/academy`.
 Returns `404` if no certificate has that number, otherwise:
 ```json
 { "success": true, "data": { "certificateId": "AXL/2026/0001", "serialNo": "5806", "name": "Jane Doe", "program": "Prompt Engineering Masterclass", "hours": 10, "grade": "A1", "conduct": "Good", "fromDate": "...", "toDate": "...", "issuedAt": "...", "revoked": false } }
 ```
-Links like `https://aixpertslabs.com/institute?cert=AXL/2026/0001` open the page and
+Links like `https://aixpertslabs.com/academy?cert=AXL/2026/0001` open the page and
 verify that certificate automatically.
 
 ### `POST /api/certificates`
@@ -117,7 +125,7 @@ The NSIC logo and Bodhgaya seal in `assets/` were cropped from a sample certific
 Replace them with NSIC's original files for sharper print quality.
 
 ### Certificate download (email OTP)
-Used by the "Download Your Certificate" section on `/institute`. Requires
+Used by the "Download Your Certificate" section on `/academy`. Requires
 `CERT_SESSION_SECRET` and a working Resend setup.
 
 1. `POST /api/certificates/otp/send` `{ "email": "jane@example.com" }` emails a 6-digit

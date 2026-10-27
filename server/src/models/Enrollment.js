@@ -20,11 +20,31 @@ const enrollmentSchema = new Schema(
       required: true,
       unique: true,
     },
+    // "program": a listed course. "custom": the learner described something we don't offer yet,
+    // and the team plans a course for them.
+    requestType: {
+      type: String,
+      enum: ["program", "custom"],
+      default: "program",
+      index: true,
+    },
     program: {
       type: String,
       required: true,
       trim: true,
       maxlength: 200,
+    },
+    customTopic: {
+      type: String,
+      trim: true,
+      maxlength: 120,
+      default: "",
+    },
+    customDetails: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+      default: "",
     },
     programSlug: {
       type: String,

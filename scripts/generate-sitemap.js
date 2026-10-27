@@ -48,6 +48,12 @@ const routes = [
     title: 'AI Courses for Colleges & Institutes - AIxperts Labs',
   },
   {
+    path: '/academy',
+    changefreq: 'weekly',
+    priority: '0.9',
+    title: 'AIxperts Academy - AI Certification Programs',
+  },
+  {
     path: '/school',
     changefreq: 'monthly',
     priority: '0.8',
@@ -85,10 +91,34 @@ const routes = [
   },
 ];
 
+// Same as slugify() in src/data/courses.ts, which the app uses for /academy/:slug.
+const slugify = (s) =>
+  s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+// One /academy/:slug page per program. The course list lives in TypeScript, which this
+// plain-Node script can't import, so read the flagship slug and course titles from its source.
+function programRoutes() {
+  const source = fs.readFileSync(path.resolve(__dirname, '../src/data/courses.ts'), 'utf8');
+  const flagship = source.match(/export const flagship = \{\s*slug: "([^"]+)"/)?.[1];
+  const titles = [...source.matchAll(/^\s*\["[a-z]+", "([^"]+)", \d+,/gm)].map((m) => m[1]);
+
+  if (!flagship || titles.length === 0) {
+    console.warn('[sitemap] Could not read programs from src/data/courses.ts; program pages not listed.');
+  }
+
+  return [...(flagship ? [flagship] : []), ...titles.map(slugify)].map((slug) => ({
+    path: `/academy/${slug}`,
+    changefreq: 'monthly',
+    priority: '0.7',
+  }));
+}
+
+const allRoutes = () => [...routes, ...programRoutes()];
+
 export function generateSitemapXml(baseUrl = normalizedBaseUrl) {
   const currentDate = new Date().toISOString().split('T')[0];
 
-  const urlsXml = routes
+  const urlsXml = allRoutes()
     .map((route) => {
       const fullUrl = `${baseUrl}${route.path === '/' ? '' : route.path}`;
       return `  <url>
@@ -135,7 +165,7 @@ function run() {
   const robotsTxt = generateRobotsTxt(normalizedBaseUrl);
 
   fs.writeFileSync(sitemapPath, sitemapXml.trimEnd() + '\n', 'utf8');
-  console.log(`[sitemap] Generated sitemap.xml with ${routes.length} routes at ${sitemapPath}`);
+  console.log(`[sitemap] Generated sitemap.xml with ${allRoutes().length} routes at ${sitemapPath}`);
 
   fs.writeFileSync(robotsPath, robotsTxt.trimEnd() + '\n', 'utf8');
   console.log(`[sitemap] Generated robots.txt at ${robotsPath}`);

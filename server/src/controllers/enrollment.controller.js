@@ -13,10 +13,15 @@ export const create = async (req, res, next) => {
       ? { data: req.file.buffer, contentType: req.file.mimetype, filename: req.file.originalname }
       : undefined;
 
+    const isCustom = value("requestType") === "custom";
+
     const enrollment = await createEnrollment(
       {
-        program: value("program"),
-        programSlug: value("programSlug"),
+        requestType: isCustom ? "custom" : "program",
+        program: isCustom ? `Custom course: ${value("customTopic")}` : value("program"),
+        programSlug: isCustom ? "custom" : value("programSlug"),
+        customTopic: isCustom ? value("customTopic") : "",
+        customDetails: isCustom ? value("customDetails") : "",
         batchType: value("batchType"),
         name: value("name"),
         guardianName: value("guardianName"),
@@ -35,6 +40,7 @@ export const create = async (req, res, next) => {
       success: true,
       data: {
         enrollmentId: enrollment.enrollmentId,
+        requestType: enrollment.requestType,
         program: enrollment.program,
         batchType: enrollment.batchType,
         emailSent: enrollment.emailSent,

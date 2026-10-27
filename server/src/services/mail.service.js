@@ -128,22 +128,66 @@ const detailsTable = (rows) =>
       ([label, value]) => `
       <tr>
         <td style="padding:8px 12px;font-weight:600;color:#334155;border-bottom:1px solid #e2e8f0;white-space:nowrap;">${escapeHtml(label)}</td>
-        <td style="padding:8px 12px;color:#1e293b;border-bottom:1px solid #e2e8f0;">${escapeHtml(value)}</td>
+        <td style="padding:8px 12px;color:#1e293b;border-bottom:1px solid #e2e8f0;">${escapeHtml(value).replace(/\n/g, "<br/>")}</td>
       </tr>`
     )
     .join("");
 
+const enrollmentConfirmation = (enrollment) => ({
+  subject: `You're enrolled — ${enrollment.program} (${enrollment.enrollmentId})`,
+  text: `Hi ${enrollment.name},\n\nThanks for enrolling in ${enrollment.program} (${enrollment.batchType} batch) at AIxperts Labs.\n\nYour enrollment ID is ${enrollment.enrollmentId}. Our team will contact you on WhatsApp at ${enrollment.phone} with the batch start date, fee and payment details.\n\n— AIxperts Labs`,
+  html: `
+    <div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;">
+      <h2 style="color:#ea580c;">You're enrolled, ${escapeHtml(enrollment.name)}!</h2>
+      <p style="color:#334155;font-size:15px;line-height:1.6;">
+        Thanks for enrolling in <strong>${escapeHtml(enrollment.program)}</strong> (${escapeHtml(enrollment.batchType)} batch).
+      </p>
+      <p style="color:#334155;font-size:15px;line-height:1.6;">
+        Your enrollment ID is <strong style="font-family:monospace;">${escapeHtml(enrollment.enrollmentId)}</strong>.
+        Our team will contact you on WhatsApp at ${escapeHtml(enrollment.phone)} with the batch start date, fee and payment details.
+      </p>
+      <p style="color:#94a3b8;font-size:13px;margin-top:32px;">— AIxperts Labs</p>
+    </div>
+  `,
+});
+
+const customRequestConfirmation = (enrollment) => ({
+  subject: `We've received your course request — ${enrollment.customTopic} (${enrollment.enrollmentId})`,
+  text: `Hi ${enrollment.name},\n\nThanks for telling us you want to learn "${enrollment.customTopic}". Our team will review your request and plan a course around your goals.\n\nYour request ID is ${enrollment.enrollmentId}. We'll contact you on WhatsApp at ${enrollment.phone} with a proposed plan, schedule and fee.\n\n— AIxperts Labs`,
+  html: `
+    <div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;">
+      <h2 style="color:#ea580c;">We've got your request, ${escapeHtml(enrollment.name)}!</h2>
+      <p style="color:#334155;font-size:15px;line-height:1.6;">
+        Thanks for telling us you want to learn <strong>${escapeHtml(enrollment.customTopic)}</strong>.
+        Our team will review your request and plan a course around your goals.
+      </p>
+      <p style="color:#334155;font-size:15px;line-height:1.6;">
+        Your request ID is <strong style="font-family:monospace;">${escapeHtml(enrollment.enrollmentId)}</strong>.
+        We'll contact you on WhatsApp at ${escapeHtml(enrollment.phone)} with a proposed plan, schedule and fee.
+      </p>
+      <p style="color:#94a3b8;font-size:13px;margin-top:32px;">— AIxperts Labs</p>
+    </div>
+  `,
+});
+
 /**
- * Notifies the team of a new enrollment (with the learner's photo attached) and
+ * Notifies the team of a new enrollment or custom course request (with the learner's photo attached) and
  * sends the learner a confirmation with their enrollment ID. Throws if the team
  * notification fails; the learner confirmation failing is not fatal.
  */
 export const sendEnrollmentEmails = async (enrollment, photo) => {
   const client = getResendClient();
+  const isCustom = enrollment.requestType === "custom";
+  const heading = isCustom ? "New Custom Course Request" : "New Enrollment";
 
   const rows = [
-    ["Enrollment ID", enrollment.enrollmentId],
-    ["Program", enrollment.program],
+    [isCustom ? "Request ID" : "Enrollment ID", enrollment.enrollmentId],
+    ...(isCustom
+      ? [
+          ["Wants to learn", enrollment.customTopic],
+          ["Goals & background", enrollment.customDetails],
+        ]
+      : [["Program", enrollment.program]]),
     ["Batch", enrollment.batchType],
     ["Name", enrollment.name],
     ["Father's / mother's name", enrollment.guardianName],
@@ -159,11 +203,13 @@ export const sendEnrollmentEmails = async (enrollment, photo) => {
     from: env.mailFrom,
     to: env.mailTo,
     replyTo: enrollment.email,
-    subject: `New Enrollment ${enrollment.enrollmentId} — ${enrollment.name} (${enrollment.program})`,
+    subject: isCustom
+      ? `${heading} ${enrollment.enrollmentId} — ${enrollment.name}: ${enrollment.customTopic}`
+      : `${heading} ${enrollment.enrollmentId} — ${enrollment.name} (${enrollment.program})`,
     text: rows.filter(([, v]) => v).map(([l, v]) => `${l}: ${v}`).join("\n"),
     html: `
       <div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;">
-        <h2 style="color:#ea580c;">New Enrollment</h2>
+        <h2 style="color:#ea580c;">${heading}</h2>
         <table style="width:100%;border-collapse:collapse;">${detailsTable(rows)}</table>
       </div>
     `,
@@ -179,21 +225,7 @@ export const sendEnrollmentEmails = async (enrollment, photo) => {
   const { error: confirmationError } = await client.emails.send({
     from: env.mailFrom,
     to: enrollment.email,
-    subject: `You're enrolled — ${enrollment.program} (${enrollment.enrollmentId})`,
-    text: `Hi ${enrollment.name},\n\nThanks for enrolling in ${enrollment.program} (${enrollment.batchType} batch) at AIxperts Labs.\n\nYour enrollment ID is ${enrollment.enrollmentId}. Our team will contact you on WhatsApp at ${enrollment.phone} with the batch start date, fee and payment details.\n\n— AIxperts Labs`,
-    html: `
-      <div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;">
-        <h2 style="color:#ea580c;">You're enrolled, ${escapeHtml(enrollment.name)}!</h2>
-        <p style="color:#334155;font-size:15px;line-height:1.6;">
-          Thanks for enrolling in <strong>${escapeHtml(enrollment.program)}</strong> (${escapeHtml(enrollment.batchType)} batch).
-        </p>
-        <p style="color:#334155;font-size:15px;line-height:1.6;">
-          Your enrollment ID is <strong style="font-family:monospace;">${escapeHtml(enrollment.enrollmentId)}</strong>.
-          Our team will contact you on WhatsApp at ${escapeHtml(enrollment.phone)} with the batch start date, fee and payment details.
-        </p>
-        <p style="color:#94a3b8;font-size:13px;margin-top:32px;">— AIxperts Labs</p>
-      </div>
-    `,
+    ...(isCustom ? customRequestConfirmation(enrollment) : enrollmentConfirmation(enrollment)),
   });
 
   if (confirmationError) {

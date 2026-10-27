@@ -2,7 +2,9 @@ import { randomInt } from "node:crypto";
 import Enrollment from "../models/Enrollment.js";
 import { sendEnrollmentEmails } from "./mail.service.js";
 
-const newEnrollmentId = () => `AXL-ENR-${randomInt(10000, 100000)}`;
+// AXL-ENR-… for a listed program, AXL-REQ-… for a custom course request.
+const newEnrollmentId = (requestType) =>
+  `AXL-${requestType === "custom" ? "REQ" : "ENR"}-${randomInt(10000, 100000)}`;
 
 /**
  * Saves the enrollment under a fresh ID (retrying on the rare collision), then
@@ -14,7 +16,11 @@ export const createEnrollment = async (payload, photo) => {
 
   for (let attempt = 0; !enrollment; attempt += 1) {
     try {
-      enrollment = await Enrollment.create({ ...payload, photo, enrollmentId: newEnrollmentId() });
+      enrollment = await Enrollment.create({
+        ...payload,
+        photo,
+        enrollmentId: newEnrollmentId(payload.requestType),
+      });
     } catch (err) {
       if (err.code !== 11000 || attempt >= 4) throw err;
     }

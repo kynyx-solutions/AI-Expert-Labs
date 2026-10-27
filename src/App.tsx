@@ -21,6 +21,8 @@ import Homeasy from "./assets/partners/homeasy.png";
 import aihero from "./public/videos/aihero.mp4";
 import Consultation from "./consultation";
 import Enroll from "./enroll";
+import Academy from "./academy";
+import Program from "./program";
 import MovingGini from "./MovingGini";
 import cehro from './assets/cehro.png';
 import kynyx from './assets/kynyx logo.png'; 
@@ -149,6 +151,10 @@ const Navbar = () => {
             <div className="absolute left-0 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
               <div className="bg-white shadow-xl border rounded-xl py-2 w-48">
 
+                <Link to="/academy" className="block px-4 py-2 text-sm hover:bg-slate-100">
+                  Academy
+                </Link>
+
                 <Link to="/corporate" className="block px-4 py-2 text-sm hover:bg-slate-100">
                   Corporate Training
                 </Link>
@@ -217,6 +223,10 @@ const Navbar = () => {
 
           <div className="space-y-2">
             <p className="font-bold text-slate-800">Academic</p>
+
+            <Link to="/academy" onClick={() => setIsMobileMenuOpen(false)} className="block pl-3 text-sm text-slate-600">
+              Academy
+            </Link>
 
             <Link to="/corporate" onClick={() => setIsMobileMenuOpen(false)} className="block pl-3 text-sm text-slate-600">
               Corporate Training
@@ -1646,6 +1656,8 @@ export default function App() {
             {/* <Route path="/research" element={<Research />} /> */}
             <Route path="/consultation" element={<Consultation />} />
             <Route path="/enroll" element={<Enroll />} />
+            <Route path="/academy" element={<Academy />} />
+            <Route path="/academy/:slug" element={<Program />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
