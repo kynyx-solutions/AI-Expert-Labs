@@ -1,30 +1,9 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import { Link } from "react-router-dom";
-import CourseCatalogue from "./courseCatalogue";
-import VerifyCertificate from "./verifyCertificate";
-import DownloadCertificate from "./downloadCertificate";
-import NsicCertification from "./nsicCertification";
-import {
-  categories,
-  courses,
-  coursesIn,
-  enrollablePrograms,
-  flagship,
-  levels,
-} from "./data/courses";
-
-// Counted from the course data, so these stay accurate as courses are added.
-const tracks = categories.filter((c) => coursesIn(c.id).length > 0);
-
-const stats = [
-  { value: String(enrollablePrograms.length), label: "Certification Programs", color: "text-orange-500" },
-  { value: String(tracks.length), label: "Learning Tracks", color: "text-pink-500" },
-  { value: `${flagship.hours} hrs`, label: "Flagship Program", color: "text-green-500" },
-  { value: String(levels.length), label: "Skill Levels", color: "text-yellow-500" },
-];
+import { submitForm } from "./lib/api";
 
 import { motion } from "framer-motion";
 import {
@@ -37,6 +16,45 @@ import {
   Users,
   Rocket,
 } from "lucide-react";
+
+const courses = [
+  {
+    title: "AI & ML Program",
+    desc: "Become AI Engineer with real projects",
+    image:
+      "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=1200",
+  },
+  {
+    title: "Generative AI",
+    desc: "Master ChatGPT & LLM tools",
+    image:
+      "https://images.unsplash.com/photo-1682685797439-a05dd915cee9?q=80&w=1200",
+  },
+  {
+    title: "Data Science",
+    desc: "Real datasets & ML training",
+    image:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200",
+  },
+  {
+    title: "Cyber Security",
+    desc: "Learn ethical hacking & security tools",
+    image:
+      "https://images.unsplash.com/photo-1510511459019-5dda7724fd87?q=80&w=1200",
+  },
+  {
+    title: "Cloud Computing",
+    desc: "Master AWS, Azure & DevOps tools",
+    image:
+      "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200",
+  },
+  {
+    title: "Full Stack Development",
+    desc: "Build modern web apps with React & Node",
+    image:
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200",
+  },
+];
 
 const companies = [
   "Google",
@@ -75,9 +93,9 @@ function TrustedCompaniesSlider() {
   const repeatedCompanies = [...companies, ...companies];
 
   return (
-    <section className="relative overflow-hidden bg-white py-12 md:py-14 border-y border-slate-200">
+    <section className="relative overflow-hidden bg-white py-16 border-y border-slate-200">
       {/* Heading */}
-      <div className="max-w-7xl mx-auto px-6 text-center mb-8 md:mb-10">
+      <div className="max-w-7xl mx-auto px-6 text-center mb-12">
 
         <h2 className="text-4xl md:text-6xl font-bold text-slate-900">
   Students Hired In{" "}
@@ -134,7 +152,7 @@ function CampasTransformation() {
   ];
 
   return (
-    <section className="py-12 md:py-16 bg-[#f8fafc] relative overflow-hidden">
+    <section className="py-28 bg-[#f8fafc] relative overflow-hidden">
       {/* Background Glow */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 blur-[130px]" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-500/10 blur-[130px]" />
@@ -146,16 +164,16 @@ function CampasTransformation() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           viewport={{ once: true }}
-          className="text-center mb-10 md:mb-12"
+          className="text-center mb-20"
         >
-          <p className="text-orange-500 font-semibold text-sm md:text-base tracking-[0.2em] uppercase mb-4">
-            Why Choose Us
-          </p>
+         <p className="text-5xl font-semibold tracking-[0.1em] uppercase mb-4 leading-tight text-orange-500">
+  Why <span className="text-black">Choose</span> Us
+</p>
 
           <h2 className="text-4xl md:text-6xl font-bold text-slate-900 leading-tight">
             What Changes When Your Institute
             <br />
-            Grows With <span className="text-orange-500">AIxperts Labs</span>
+            Grows With <span className="text-orange-500">AI Expert Labs</span>
           </h2>
 
           <p className="mt-6 text-xl text-slate-500 max-w-3xl mx-auto">
@@ -200,7 +218,7 @@ function CampasTransformation() {
               <div className="flex items-center gap-3 mb-8">
                 <CheckCircle2 className="w-10 h-10 text-green-400" />
                 <h3 className="text-2xl md:text-4xl font-bold text-white">
-                  AIxperts Labs Solution
+                  AI Expert Labs Solution
                 </h3>
               </div>
 
@@ -230,9 +248,44 @@ function CampasTransformation() {
 }
 
 export default function Institute() {
+  const [showForm, setShowForm] = useState(false);
+  const [enrollForm, setEnrollForm] = useState({ name: "", email: "" });
+  const [enrollStatus, setEnrollStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+
   useEffect(() => {
     AOS.init({ duration: 800, once: true });
   }, []);
+
+  const handleEnrollChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEnrollForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEnrollSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!enrollForm.name || !enrollForm.email) return;
+
+    setEnrollStatus("sending");
+    try {
+      await submitForm({
+        formType: "enrollment",
+        name: enrollForm.name,
+        email: enrollForm.email,
+        subject: "Institute Enrollment Request",
+        message: `${enrollForm.name} (${enrollForm.email}) requested enrollment info via the Institute page.`,
+        source: "institute-page",
+      });
+      setEnrollStatus("sent");
+      setEnrollForm({ name: "", email: "" });
+      setTimeout(() => {
+        setEnrollStatus("idle");
+        setShowForm(false);
+      }, 2000);
+    } catch (err) {
+      console.error("EMAIL ERROR:", err);
+      setEnrollStatus("error");
+    }
+  };
 
   const students = [
   {
@@ -277,7 +330,7 @@ export default function Institute() {
     <div className="bg-white text-slate-900 overflow-hidden">
 
       {/* ================= HERO ================= */}
-     <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden py-16">
+     <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden">
 
   {/* 🎥 VIDEO BACKGROUND */}
   <video
@@ -301,7 +354,7 @@ export default function Institute() {
   <div className="relative z-20 max-w-7xl mx-auto px-6">
 
     {/* 🔥 TOP GRID */}
-    <div className="grid lg:grid-cols-2 gap-12 lg:gap-40 items-center">
+    <div className="grid lg:grid-cols-2 gap-40 items-center">
 
       {/* LEFT TEXT */}
       <motion.div
@@ -314,24 +367,23 @@ export default function Institute() {
           Trusted by Top Brands
         </span>
 
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mt-6 leading-tight text-white">
+        <h1 className="text-6xl md:text-6xl font-extrabold mt-6 leading-tight text-white">
           Launch Your Career in{" "}
           <span className="text-orange-500">Artificial Intelligence</span>
         </h1>
 
-        <p className="text-slate-200 mt-6 text-lg md:text-2xl max-w-xl">
+        <p className="text-slate-200 mt-6 text-2xl max-w-xl">
           Learn AI from industry experts with real-world projects, certifications, and career support.
         </p>
 
         {/* CTA */}
         <div className="flex gap-4 mt-8 flex-wrap">
 
-          <a
-            href="#programs"
-            className="inline-block bg-orange-500 text-white px-8 py-4 rounded-full font-semibold hover:scale-105 hover:shadow-[0_0_30px_rgba(249,115,22,0.6)] transition"
-          >
-            View Programs
-          </a>
+          <Link to="/services">
+            <button className="bg-orange-500 text-white px-8 py-4 rounded-full font-semibold hover:scale-105 hover:shadow-[0_0_30px_rgba(249,115,22,0.6)] transition">
+              View Programs
+            </button>
+          </Link>
 
           <Link to="/contact">
             <button className="border border-white/30 text-white px-8 py-4 rounded-full hover:bg-white/10 transition">
@@ -375,17 +427,35 @@ export default function Institute() {
     <div className="mt-16 border-y border-slate-500">
 
       <div className="grid grid-cols-2 md:grid-cols-4">
-        {stats.map((s, i) => (
-          <div
-            key={s.label}
-            className={`p-6 text-center border-slate-500 ${i % 2 === 0 ? "border-r" : ""} ${
-              i === 1 ? "md:border-r" : ""
-            } ${i < 2 ? "border-b md:border-b-0" : ""}`}
-          >
-            <p className={`text-4xl md:text-5xl font-bold mb-2 ${s.color}`}>{s.value}</p>
-            <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest">{s.label}</p>
-          </div>
-        ))}
+
+        <div className="p-6 border-r border-slate-500 text-center">
+          <p className="text-4xl md:text-5xl font-bold text-orange-500 mb-2">1000+</p>
+          <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest">
+            Learners
+          </p>
+        </div>
+
+        <div className="p-6 border-r border-slate-500 text-center">
+          <p className="text-4xl md:text-5xl font-bold text-pink-500 mb-2">50+</p>
+          <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest">
+            Courses
+          </p>
+        </div>
+
+        <div className="p-6 border-r border-slate-500 text-center">
+          <p className="text-4xl md:text-5xl font-bold text-green-500 mb-2">90%</p>
+          <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest">
+            Placement Rate
+          </p>
+        </div>
+
+        <div className="p-6 text-center">
+          <p className="text-4xl md:text-5xl font-bold text-yellow-500 mb-2">95%</p>
+          <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest">
+            Success
+          </p>
+        </div>
+
       </div>
 
     </div>
@@ -395,8 +465,40 @@ export default function Institute() {
 <TrustedCompaniesSlider />
     
 
-      {/* ================= PROGRAMS & COURSES ================= */}
-<CourseCatalogue />
+      {/* ================= COURSES ================= */}
+      <section className="max-w-7xl mx-auto px-6 py-20">
+
+        <h2 className="text-7xl font-bold text-center mb-18">
+          Explore <span className="text-orange-500">Programs</span>
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-8">
+
+          {courses.map((c, i) => (
+            <motion.div
+              key={i}
+              whileHover={{ y: -10 }}
+              data-aos="fade-up"
+              className="rounded-3xl overflow-hidden shadow hover:shadow-2xl transition"
+            >
+              <img src={c.image} className="h-52 w-full object-cover" />
+
+              <div className="p-6">
+                <h3 className="font-bold text-xl mb-2">{c.title}</h3>
+                <p className="text-slate-500 mb-4">{c.desc}</p>
+
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="text-orange-500 font-semibold"
+                >
+                  Enroll →
+                </button>
+              </div>
+            </motion.div>
+          ))}
+
+        </div>
+</section>
 
 {/* ================= CAMPUS TRANSFORMATION ================= */}
 <CampasTransformation />
@@ -418,52 +520,43 @@ export default function Institute() {
         </div>
       </section> */}
       {/* ================= TRUST / PARTNERS ================= */}
-<section className="max-w-7xl mx-auto px-6 py-12 md:py-16 grid lg:grid-cols-2 gap-12 items-center">
+<section className="max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-12 items-center">
 
   {/* LEFT TEXT */}
   <motion.div
     initial={{ x: -60, opacity: 0 }}
-    viewport={{ once: true }}
     whileInView={{ x: 0, opacity: 1 }}
     transition={{ duration: 0.8 }}
   >
     <h2 className="text-4xl md:text-5xl font-bold leading-tight">
       Offer students{" "}
-      <span className="text-orange-500">{courses.length}+ certification courses</span>{" "}
-      across {tracks.length} learning tracks
+      <span className="text-orange-500">10,600+ courses</span>{" "}
+      from 350+ leading universities and industry partners
     </h2>
 
     <p className="text-slate-500 mt-6 text-lg max-w-xl">
-      From 2-day workshops to 15-day deep dives, in regular or weekend batches.
-      Every course ends with an assessment and a verifiable certificate.
+      Learn from world-class institutions and top companies with
+      cutting-edge AI curriculum and real-world applications.
     </p>
   </motion.div>
 
-  {/* RIGHT: LEARNING TRACKS */}
+  {/* RIGHT LOGO IMAGE */}
   <motion.div
     initial={{ x: 60, opacity: 0 }}
-    viewport={{ once: true }}
     whileInView={{ x: 0, opacity: 1 }}
     transition={{ duration: 0.8 }}
-    className="grid sm:grid-cols-2 gap-3"
   >
-    {tracks.map((t) => (
-      <a
-        key={t.id}
-        href="#programs"
-        className="flex items-center justify-between gap-3 bg-white rounded-2xl px-5 py-4 shadow border border-slate-100 hover:border-orange-400 transition"
-      >
-        <span className="font-semibold text-slate-800">{t.title}</span>
-        <span className="text-sm font-bold text-orange-500 flex-shrink-0">{coursesIn(t.id).length}</span>
-      </a>
-    ))}
+    <img
+      src="https://images.ctfassets.net/2pudprfttvy6/2eC1z7LVc0mMog2PnVxS5u/1e10361669fa01aeea0a1a2e9352a229/BC-2700_B2B_Homepage_Partner_Logo_Refresh_April_2024b.png"
+      className="w-full rounded-2xl shadow-xl"
+    />
   </motion.div>
 
 </section>
 
 <InstituteBenefits />
 
-<section className="relative overflow-hidden bg-[#edf3ff] py-12 md:py-16">
+<section className="relative overflow-hidden bg-[#edf3ff] py-28">
   {/* Dots Background */}
   <div className="absolute inset-0 opacity-30 bg-[radial-gradient(#7aa2ff_1px,transparent_1px)] [background-size:32px_32px]" />
 
@@ -502,29 +595,29 @@ export default function Institute() {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
       viewport={{ once: true }}
-      className="text-orange-500 font-semibold text-sm md:text-base tracking-[0.2em] uppercase mb-4"
+      className="text-orange-500 font-semibold text-4xl uppercase tracking-[0.3em] mb-10"
     >
-      Future Ready Campus
-    </motion.p>
+     Future <span className="text-black">Ready</span> Campus
+</motion.p>
 
-    <motion.h2
+    <motion.h1
       initial={{ opacity: 0, y: 25 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7 }}
       viewport={{ once: true }}
-      className="text-4xl md:text-6xl font-bold text-slate-900 leading-tight"
+      className="text-4xl md:text-7xl font-bold text-slate-900 leading-tight"
     >
       Helping Institutes Build
       <br />
       <span className="text-orange-500">Career-Ready Students</span>
-    </motion.h2>
+    </motion.h1>
 
     <motion.p
       initial={{ opacity: 0, y: 25 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.15, duration: 0.7 }}
       viewport={{ once: true }}
-      className="mt-6 text-xl text-slate-500 max-w-3xl mx-auto leading-relaxed"
+      className="mt-8 text-xl text-slate-500 max-w-3xl mx-auto leading-relaxed"
     >
       AI-powered training, placements, mentorship and real-world learning
       experiences designed for modern institutes.
@@ -536,7 +629,7 @@ export default function Institute() {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.25, duration: 0.7 }}
       viewport={{ once: true }}
-      className="flex flex-col sm:flex-row gap-5 justify-center mt-10"
+      className="flex flex-col sm:flex-row gap-5 justify-center mt-12"
     >
       <Link to="/services">
         <button className="px-10 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-800 text-white font-semibold text-lg shadow-xl hover:scale-105 transition">
@@ -553,50 +646,86 @@ export default function Institute() {
   </div>
 </section>
 
-{/* ================= JOINT CERTIFICATION WITH NSIC ================= */}
-<NsicCertification />
-
-{/* ================= CERTIFICATES: VERIFY + DOWNLOAD (EMAIL OTP) ================= */}
-<section id="certificates" className="pt-12 md:pt-16 bg-white">
-  <div className="max-w-7xl mx-auto px-6">
-    <div className="text-center mb-10 md:mb-12">
-      <p className="text-orange-500 font-semibold text-sm md:text-base tracking-[0.2em] uppercase mb-4">
-        Certificates
-      </p>
-      <h2 className="text-4xl md:text-6xl font-bold leading-tight">
-        Verify or <span className="text-orange-500">Download</span>
-      </h2>
-      <p className="mt-6 text-xl text-slate-500 max-w-2xl mx-auto">
-        Every AIxperts Labs certificate carries a unique certificate ID, so anyone can
-        check it in seconds.
-      </p>
-    </div>
-
-    {/* items-stretch keeps both cards the same height, even when one shows a result */}
-    <div className="grid lg:grid-cols-2 gap-8 items-stretch">
-      <VerifyCertificate />
-      <DownloadCertificate />
-    </div>
-  </div>
-</section>
-
       {/* ================= CTA ================= */}
-      <section className="py-12 md:py-16">
-        <div className="max-w-6xl mx-4 md:mx-auto text-center bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white p-10 md:p-16 rounded-4xl">
+      <section className="py-24">
+        <div className="max-w-6xl mx-auto text-center bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white p-16 rounded-4xl">
 
-          <h2 className="text-4xl md:text-6xl font-bold mb-8 text-white">
+          <h2 className="text-7xl font-bold mb-6">
             Start Your AI Journey Today
           </h2>
 
-          <Link
-            to="/enroll"
-            className="inline-block bg-white text-slate-900 px-10 py-4 rounded-full font-semibold hover:scale-105 transition"
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-white text-black px-8 py-3 rounded-full"
           >
             Enroll Now
-          </Link>
+          </button>
 
         </div>
       </section>
+
+      {/* ================= MODAL ================= */}
+     {/* ================= MODAL ================= */}
+{showForm && (
+  <div
+    className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+    onClick={() => setShowForm(false)} // 👈 outside click se close
+  >
+    <div
+      className="bg-white p-8 rounded-2xl w-80 relative"
+      onClick={(e) => e.stopPropagation()} // 👈 andar click pe band na ho
+    >
+
+      {/* ❌ CLOSE BUTTON */}
+      <button
+        onClick={() => setShowForm(false)}
+        className="absolute top-3 right-3 text-gray-500 hover:text-black text-xl font-bold"
+      >
+        ✕
+      </button>
+
+      <h2 className="font-bold mb-4 text-lg">Enroll</h2>
+
+      {enrollStatus === "sent" ? (
+        <p className="text-emerald-600 font-semibold text-center py-4">Thanks! We'll be in touch. ✓</p>
+      ) : (
+        <form onSubmit={handleEnrollSubmit}>
+          <input
+            name="name"
+            value={enrollForm.name}
+            onChange={handleEnrollChange}
+            required
+            className="w-full mb-3 border p-2 rounded"
+            placeholder="Name"
+          />
+
+          <input
+            type="email"
+            name="email"
+            value={enrollForm.email}
+            onChange={handleEnrollChange}
+            required
+            className="w-full mb-3 border p-2 rounded"
+            placeholder="Email"
+          />
+
+          <button
+            type="submit"
+            disabled={enrollStatus === "sending"}
+            className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 transition disabled:opacity-60"
+          >
+            {enrollStatus === "sending" ? "Sending..." : "Submit"}
+          </button>
+
+          {enrollStatus === "error" && (
+            <p className="text-red-500 text-xs text-center mt-2">Failed to send. Please try again.</p>
+          )}
+        </form>
+      )}
+
+    </div>
+  </div>
+)}
 
     </div>
   );
@@ -637,18 +766,18 @@ function InstituteBenefits() {
   ];
 
   return (
-    <section className="py-12 md:py-16 bg-[#eef4ff]">
+    <section className="py-28 bg-[#eef4ff]">
       <div className="max-w-7xl mx-auto px-6">
         {/* Heading */}
-        <div className="text-center mb-10 md:mb-12">
-          <p className="text-orange-500 font-semibold text-sm md:text-base tracking-[0.2em] uppercase mb-4">
-            Why Students Choose Us
-          </p>
+        <div className="text-center mb-12">
+         <p className="text-orange-500 font-semibold text-4xl tracking-[0.1em] uppercase mb-8">
+  Why Students <span className="text-black">Choose Us</span>
+</p>
 
           <h2 className="text-4xl md:text-6xl font-bold text-slate-900 leading-tight">
             What Your Institute Gets
             <br />
-            With <span className="text-orange-500">AIxperts Labs</span>
+            With <span className="text-orange-500">AI Expert Labs</span>
           </h2>
 
           <p className="mt-6 text-xl text-slate-500 max-w-3xl mx-auto">
